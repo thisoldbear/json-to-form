@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "minLength": 3,
+      "reactProps": {
+        "label": "Name"
+      }
+    },
+    "age": {
+      "type": "number",
+      "min": 18,
+      "reactProps": {
+        "label": "Age"
+      }
+    }
+  },
+  "required": [
+    "name",
+    "age"
+  ]
+}
