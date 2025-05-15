@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { type ReactNode, useState } from "react";
 
 import { z } from "zod";
 
@@ -7,8 +7,22 @@ import type { FormEvent } from "react";
 
 type FormState = Record<string, "string" | "number">;
 
+const Fieldset = ({
+  label,
+  children,
+}: {
+  children: ReactNode;
+} & FieldProps) => {
+  return (
+    <fieldset>
+      <legend>{label}</legend>
+      {children}
+    </fieldset>
+  );
+};
+
 const StringField = (
-  props: ReactProps,
+  props: FieldProps,
   value: any,
   setFormState: any,
   formErrors: z.ZodIssue[]
@@ -31,7 +45,7 @@ const StringField = (
 };
 
 const NumberField = (
-  props: ReactProps,
+  props: FieldProps,
   value: any,
   setFormState: any,
   formErrors: z.ZodIssue[]
@@ -54,6 +68,7 @@ const NumberField = (
 };
 
 const mapPropertyTypeToField = {
+  fieldset: Fieldset,
   string: StringField,
   number: NumberField,
 };
@@ -64,20 +79,25 @@ const jsonSchemaToFields = (
   setFormState: React.Dispatch<React.SetStateAction<FormState>>,
   formErrors: z.ZodIssue[]
 ) => {
-  return Object.entries(schema.properties).map(([key, property]) => {
+  return Object.entries(schema.properties).map(([, fieldset]) => {
+    const FieldsetComponent =
+      mapPropertyTypeToField[fieldset.props.formComponent];
+
     return (
-      <>
-        {mapPropertyTypeToField[property.type](
-          property.reactProps,
-          formState[key],
-          (value: "string" | "number") =>
-            setFormState((prevState) => ({
-              ...prevState,
-              [key]: value,
-            })),
-          formErrors.filter((error) => error.path.includes(key))
-        )}
-      </>
+      <FieldsetComponent label={fieldset.props.label} formComponent="fieldset">
+        {Object.entries(fieldset.properties).map(([key, field]) => {
+          return mapPropertyTypeToField[field.type](
+            field.props,
+            formState[key],
+            (value: FieldTypes) =>
+              setFormState((prevState) => ({
+                ...prevState,
+                [key]: value,
+              })),
+            formErrors.filter((error) => error.path.includes(key))
+          );
+        })}
+      </FieldsetComponent>
     );
   });
 };
@@ -86,14 +106,16 @@ const jsonDataToZodSchema = (jsonData: SchemaType) => {
   const validation: Record<string, z.ZodString | z.ZodNumber> = {};
 
   // Super verbose and unelegant
-  Object.entries(jsonData.properties).forEach(([key, property]) => {
-    if (property.type === "string" && property.minLength) {
-      validation[key] = z.string().min(property.minLength);
-    }
+  Object.entries(jsonData.properties).forEach(([_, fieldset]) => {
+    Object.entries(fieldset.properties).forEach(([key, field]) => {
+      if (field.type === "string" && field.minLength) {
+        validation[key] = z.string().min(field.minLength);
+      }
 
-    if (property.type === "number" && property.min) {
-      validation[key] = z.number().min(property.min);
-    }
+      if (field.type === "number" && field.min) {
+        validation[key] = z.number().min(field.min);
+      }
+    });
   });
 
   return z.object(validation);

@@ -2,18 +2,54 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "type": "object",
   "properties": {
-    "name": {
-      "type": "string",
-      "minLength": 3,
-      "reactProps": {
-        "label": "Name"
+    "person": {
+      "type": "object",
+      "props": {
+        "label": "Team Member",
+        "formComponent": "fieldset"
+      },
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 3,
+          "props": {
+            "label": "Name",
+            "formComponent": "string"
+          }
+        },
+        "age": {
+          "type": "number",
+          "min": 18,
+          "props": {
+            "label": "Age",
+            "formComponent": "number"
+          }
+        }
       }
     },
-    "age": {
-      "type": "number",
-      "min": 18,
-      "reactProps": {
-        "label": "Age"
+    "job": {
+      "type": "object",
+      "props": {
+        "label": "Role",
+        "formComponent": "fieldset"
+      },
+      "properties": {
+        "jobTitle": {
+          "type": "string",
+          "minLength": 3,
+          "props": {
+            "label": "Job Title",
+            "formComponent": "string"
+          }
+        },
+        "salary": {
+          "type": "number",
+          "min": 20000,
+          "props": {
+            "label": "Salary",
+            "formComponent": "number"
+          }
+        }
       }
     }
   },

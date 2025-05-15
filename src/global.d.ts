@@ -12,20 +12,32 @@ type Max = {
 
 type Validations = Partial<Min & Max & MinLength>;
 
-type ReactProps = {
+type FieldProps = {
   label: string;
+  formComponent: "fieldset" | FieldTypes;
 };
 
-type PropertyTypes = "string" | "number";
+type FieldsetProps = {
+  label: string;
+  formComponent: "fieldset";
+};
+
+type FieldTypes = "string" | "number";
 
 type SchemaType = {
   $schema: string;
   type: string;
   properties: {
     [key: string]: {
-      type: PropertyTypes;
-      reactProps: ReactProps;
-    } & Validations;
+      type: "object";
+      props: FieldsetProps;
+      properties: {
+        [key: string]: {
+          type: FieldTypes;
+          props: FieldProps;
+        } & Validations;
+      };
+    };
   };
   required: string[];
 };
