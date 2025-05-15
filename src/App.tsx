@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { z } from "zod";
 
 import jsonData from "./jsonData.json";
-import { FormEvent } from "react";
+import type { FormEvent } from "react";
 
 type FormState = Record<string, "string" | "number">;
 
