@@ -1,11 +1,18 @@
-import React, { type ReactNode, useState } from "react";
+import { type ReactNode } from "react";
+import {
+  useForm,
+  type UseFormRegister,
+  type SubmitHandler,
+  type FieldErrors,
+} from "react-hook-form";
 
 import { z } from "zod";
 
-import jsonData from "./jsonData.json";
-import type { FormEvent } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
 
-type FormState = Record<string, "string" | "number">;
+import jsonData from "./jsonData.json";
+
+type FormState = { [x: string]: string | number };
 
 const Fieldset = ({
   label,
@@ -22,47 +29,38 @@ const Fieldset = ({
 };
 
 const StringField = (
-  props: FieldProps,
-  value: any,
-  setFormState: any,
-  formErrors: z.ZodIssue[]
+  props: FieldProps & {
+    name: string;
+  },
+  register: UseFormRegister<FormState>,
+  errors: FieldErrors<FormState>
 ) => {
   return (
     <div>
       <label>{props.label}</label>
-      <input
-        value={value}
-        type="string"
-        onChange={(e) => {
-          setFormState(e.target.value);
-        }}
-      />
-      {formErrors.map((error) => (
-        <p>{error.message}</p>
-      ))}
+      <input {...register(props.name)} type="string" />
+      <p>{errors?.[props?.name]?.message}</p>
     </div>
   );
 };
 
 const NumberField = (
-  props: FieldProps,
-  value: any,
-  setFormState: any,
-  formErrors: z.ZodIssue[]
+  props: FieldProps & {
+    name: string;
+  },
+  register: UseFormRegister<FormState>,
+  errors: FieldErrors<FormState>
 ) => {
   return (
     <div>
       <label>{props.label}</label>
       <input
-        value={value}
         type="number"
-        onChange={(e) => {
-          setFormState(parseInt(e.target.value));
-        }}
+        {...register(props.name, {
+          setValueAs: (v) => (v === "" ? undefined : parseInt(v, 10)),
+        })}
       />
-      {formErrors.map((error) => (
-        <p>{error.message}</p>
-      ))}
+      <p>{errors?.[props?.name]?.message}</p>
     </div>
   );
 };
@@ -74,27 +72,21 @@ const mapPropertyTypeToField = {
 };
 
 const jsonSchemaToFields = (
-  schema: SchemaType,
-  formState: FormState,
-  setFormState: React.Dispatch<React.SetStateAction<FormState>>,
-  formErrors: z.ZodIssue[]
+  jsonData: SchemaType,
+  register: UseFormRegister<FormState>,
+  errors: FieldErrors<FormState>
 ) => {
-  return Object.entries(schema.properties).map(([, fieldset]) => {
+  return Object.entries(jsonData.properties).map(([, fieldset]) => {
     const FieldsetComponent =
       mapPropertyTypeToField[fieldset.props.formComponent];
 
     return (
       <FieldsetComponent label={fieldset.props.label} formComponent="fieldset">
-        {Object.entries(fieldset.properties).map(([key, field]) => {
+        {Object.entries(fieldset.properties).map(([name, field]) => {
           return mapPropertyTypeToField[field.type](
-            field.props,
-            formState[key],
-            (value: FieldTypes) =>
-              setFormState((prevState) => ({
-                ...prevState,
-                [key]: value,
-              })),
-            formErrors.filter((error) => error.path.includes(key))
+            { ...field.props, name: name },
+            register,
+            errors
           );
         })}
       </FieldsetComponent>
@@ -122,33 +114,21 @@ const jsonDataToZodSchema = (jsonData: SchemaType) => {
 };
 
 function App() {
-  const [formState, setFormState] = useState<FormState>({});
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<FormState>({
+    resolver: zodResolver(jsonDataToZodSchema(jsonData as SchemaType)),
+  });
 
-  const [formErrors, setFormErrors] = useState<z.ZodIssue[]>([]);
-
-  const onSubmit = (e: FormEvent) => {
-    e.preventDefault();
-
-    setFormErrors([]);
-
-    try {
-      const validator = jsonDataToZodSchema(jsonData as SchemaType);
-      validator.parse(formState);
-    } catch (err) {
-      if (err instanceof z.ZodError) {
-        setFormErrors(err.issues);
-      }
-    }
+  const onSubmit: SubmitHandler<FormState> = (data) => {
+    alert(JSON.stringify(data));
   };
 
   return (
-    <form onSubmit={onSubmit}>
-      {jsonSchemaToFields(
-        jsonData as SchemaType,
-        formState,
-        setFormState,
-        formErrors
-      )}
+    <form onSubmit={handleSubmit(onSubmit)}>
+      {jsonSchemaToFields(jsonData as SchemaType, register, errors)}
       <button>Submit</button>
     </form>
   );
