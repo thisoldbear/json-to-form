@@ -1,16 +1,10 @@
-type MinLength = {
-  minLength: number;
+type Validations = {
+  validation: Partial<{
+    min: number;
+    max: number;
+    optional: boolean;
+  }>;
 };
-
-type Min = {
-  min: number;
-};
-
-type Max = {
-  max: number;
-};
-
-type Validations = Partial<Min & Max & MinLength>;
 
 type FieldProps = {
   label: string;
@@ -24,6 +18,13 @@ type FieldsetProps = {
 
 type FieldTypes = "string" | "number";
 
+type FieldProperties = {
+  [key: string]: {
+    type: FieldTypes;
+    props: FieldProps;
+  } & Validations;
+};
+
 type SchemaType = {
   $schema: string;
   type: string;
@@ -31,13 +32,10 @@ type SchemaType = {
     [key: string]: {
       type: "object";
       props: FieldsetProps;
-      properties: {
-        [key: string]: {
-          type: FieldTypes;
-          props: FieldProps;
-        } & Validations;
-      };
+      properties?: FieldProperties;
     };
   };
   required: string[];
 };
+
+type FormState = { [x: string]: string | number | undefined };

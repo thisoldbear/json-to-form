@@ -11,7 +11,10 @@
       "properties": {
         "name": {
           "type": "string",
-          "minLength": 3,
+          "validation": {
+            "min": 3,
+            "max": 8
+          },
           "props": {
             "label": "Name",
             "formComponent": "string"
@@ -19,7 +22,10 @@
         },
         "age": {
           "type": "number",
-          "min": 18,
+          "validation": {
+            "min": 18,
+            "optional": true
+          },
           "props": {
             "label": "Age",
             "formComponent": "number"
@@ -36,7 +42,9 @@
       "properties": {
         "jobTitle": {
           "type": "string",
-          "minLength": 3,
+          "validation": {
+            "min": 3
+          },
           "props": {
             "label": "Job Title",
             "formComponent": "string"
@@ -44,7 +52,10 @@
         },
         "salary": {
           "type": "number",
-          "min": 20000,
+          "validation": {
+            "min": 20000,
+            "optional": true
+          },
           "props": {
             "label": "Salary",
             "formComponent": "number"
