@@ -76,7 +76,7 @@ export const chainFieldValidations = (
  *
  * {
  *   "name": z.string().min(1).max(12),
- *   "age": z.min(18).optional()
+ *   "age": z.number().min(18).optional()
  * }
  */
 export const jsonDataToZodSchema = (jsonData: SchemaType) => {
